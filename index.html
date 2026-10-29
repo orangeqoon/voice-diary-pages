@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>voice diary</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { margin: 1.5rem; max-width: 52rem; line-height: 1.5; }
+    .banner { background: #664400; color: #fff; padding: .6rem 1rem; border-radius: 8px; margin-bottom: 1rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 .5rem; }
+    .meta { opacity: .75; font-size: .9rem; margin-bottom: 1.25rem; }
+    .day { border: 1px solid color-mix(in srgb, CanvasText 20%, transparent); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .day h2 { margin: 0 0 .75rem; font-size: 1.05rem; }
+    article { margin: 0 0 1rem; padding-bottom: 1rem; border-bottom: 1px dashed color-mix(in srgb, CanvasText 25%, transparent); }
+    article:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+    .file { font-family: ui-monospace, monospace; font-size: .85rem; opacity: .8; }
+    pre { white-space: pre-wrap; word-break: break-word; margin: .4rem 0 0; }
+    details { margin-top: .5rem; }
+    details > summary { cursor: pointer; opacity: .85; }
+    .empty { opacity: .7; }
+    .err { color: #c62828; }
+  </style>
+</head>
+<body>
+  <div class="banner">voice diary — 公開日記表示</div>
+  <h1>voice diary — 届いた日記</h1>
+  <p class="meta">約 60 秒ごとに自動更新。最終取得: <span id="fetched">—</span></p>
+  <div id="root" class="empty">読み込み中…</div>
+  <script>
+    function esc(s) {
+      return (s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    }
+    async function load() {
+      const root = document.getElementById('root');
+      try {
+        const res = await fetch('./data.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        document.getElementById('fetched').textContent = new Date().toLocaleString();
+        if (!data.days || !data.days.length) {
+          root.className = 'empty';
+          root.textContent = 'まだ日記がありません。';
+          return;
+        }
+        root.className = '';
+        root.innerHTML = data.days.map(day => {
+          const arts = (day.entries || []).map(e => {
+            const diary = esc(e.text || '(空)');
+            let extra = '';
+            if (e.transcript) {
+              extra = `<details><summary>文字起こし（${esc(e.transcriptName || 'transcript')}）</summary><pre>${esc(e.transcript)}</pre></details>`;
+            }
+            return `<article><div class="file">${esc(e.name)}</div><pre>${diary}</pre>${extra}</article>`;
+          }).join('');
+          return `<section class="day"><h2>${esc(day.date)}</h2>${arts || '<p class="empty">（この日の日記なし）</p>'}</section>`;
+        }).join('');
+      } catch (err) {
+        root.className = 'err';
+        root.textContent = '取得失敗: ' + err.message;
+      }
+    }
+    load();
+    setInterval(load, 60000);
+  </script>
+</body>
+</html>
