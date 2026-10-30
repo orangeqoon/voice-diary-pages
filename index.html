@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>voice diary</title>
+  <title>voice_diary_recorder — テスト表示</title>
   <style>
     :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
     body { margin: 1.5rem; max-width: 52rem; line-height: 1.5; }
@@ -23,9 +23,9 @@
   </style>
 </head>
 <body>
-  <div class="banner">voice diary — 公開日記表示</div>
+  <div class="banner">テストサイト（ローカル専用）— 本番UIではありません。日記ファイルの読み取り表示のみ。</div>
   <h1>voice diary — 届いた日記</h1>
-  <p class="meta">約 60 秒ごとに自動更新。最終取得: <span id="fetched">—</span></p>
+  <p class="meta">日記完成時に更新。最終取得: <span id="fetched">—</span></p>
   <div id="root" class="empty">読み込み中…</div>
   <script>
     function esc(s) {
@@ -34,13 +34,13 @@
     async function load() {
       const root = document.getElementById('root');
       try {
-        const res = await fetch('./data.json', { cache: 'no-store' });
+        const res = await fetch('/api/entries', { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         document.getElementById('fetched').textContent = new Date().toLocaleString();
         if (!data.days || !data.days.length) {
           root.className = 'empty';
-          root.textContent = 'まだ日記がありません。';
+          root.textContent = 'まだ日記がありません（*.diary.md が state 配下に無い）。';
           return;
         }
         root.className = '';
@@ -61,7 +61,6 @@
       }
     }
     load();
-    setInterval(load, 60000);
   </script>
 </body>
 </html>
