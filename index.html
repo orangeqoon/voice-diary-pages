@@ -44,8 +44,9 @@
           return;
         }
         root.className = '';
-        root.innerHTML = data.days.map(day => {
-          const arts = (day.entries || []).map(e => {
+        const days = [...(data.days || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        root.innerHTML = days.map(day => {
+          const arts = [...(day.entries || [])].sort((a, b) => String(b.name || '').localeCompare(String(a.name || ''))).map(e => {
             const diary = esc(e.text || '(空)');
             let extra = '';
             if (e.transcript) {
