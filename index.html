@@ -44,10 +44,10 @@
           return;
         }
         root.className = '';
-        const days = [...(data.days || [])].sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        const days = [...(data.days || [])].sort((a, b) => String((b.entries || [])[0]?.name || b.date || '').localeCompare(String((a.entries || [])[0]?.name || a.date || '')));
         root.innerHTML = days.map(day => {
           const arts = [...(day.entries || [])].sort((a, b) => String(b.name || '').localeCompare(String(a.name || ''))).map(e => {
-            const diary = esc(e.text || '(空)');
+            const diary = esc((e.text || '(空)').replace(/^\s*(?:#+\s*)?\d{4}年\d{1,2}月\d{1,2}日[^\n]*\r?\n\s*/, ''));
             let extra = '';
             if (e.transcript) {
               extra = `<details><summary>文字起こし（${esc(e.transcriptName || 'transcript')}）</summary><pre>${esc(e.transcript)}</pre></details>`;
