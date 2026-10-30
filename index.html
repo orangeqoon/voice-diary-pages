@@ -23,7 +23,7 @@
   </style>
 </head>
 <body>
-  <div class="banner">テストサイト（ローカル専用）— 本番UIではありません。日記ファイルの読み取り表示のみ。</div>
+  <div class="banner">公開日記 — 日記ファイルの読み取り表示</div>
   <h1>voice diary — 届いた日記</h1>
   <p class="meta">日記完成時に更新。最終取得: <span id="fetched">—</span></p>
   <div id="root" class="empty">読み込み中…</div>
@@ -34,7 +34,7 @@
     async function load() {
       const root = document.getElementById('root');
       try {
-        const res = await fetch('/api/entries', { cache: 'no-store' });
+        const res = await fetch('./data.json', { cache: 'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const data = await res.json();
         document.getElementById('fetched').textContent = new Date().toLocaleString();
