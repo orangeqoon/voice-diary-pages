@@ -19,6 +19,24 @@
                                  ]
                  },
                  {
+                     "date":  "20261027",
+                     "entries":  [
+                                     {
+                                         "name":  "20261027-nogrok-e2e10s.diary.md",
+                                         "text":  "## Part 1\r\nGeminiがOpus形式の音声データを受け付けるかどうかのテストをしている。   \npart-0001.opus"
+                                     }
+                                 ]
+                 },
+                 {
+                     "date":  "20261027",
+                     "entries":  [
+                                     {
+                                         "name":  "20261027-nogrok-e2e10s-b.diary.md",
+                                         "text":  "## Part 1\r\n今、GeminiがOpus形式のデータを受け付けるかどうかのテストをしている。   \npart-0001.opus"
+                                     }
+                                 ]
+                 },
+                 {
                      "date":  "20261028",
                      "entries":  [
                                      {
