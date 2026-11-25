@@ -3,65 +3,83 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>voice_diary_recorder — テスト表示</title>
+  <title>Voice Diary</title>
   <style>
-    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
-    body { margin: 1.5rem; max-width: 52rem; line-height: 1.5; }
-    .banner { background: #664400; color: #fff; padding: .6rem 1rem; border-radius: 8px; margin-bottom: 1rem; }
-    h1 { font-size: 1.25rem; margin: 0 0 .5rem; }
-    .meta { opacity: .75; font-size: .9rem; margin-bottom: 1.25rem; }
-    .day { border: 1px solid color-mix(in srgb, CanvasText 20%, transparent); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
-    .day h2 { margin: 0 0 .75rem; font-size: 1.05rem; }
-    article { margin: 0 0 1rem; padding-bottom: 1rem; border-bottom: 1px dashed color-mix(in srgb, CanvasText 25%, transparent); }
+    :root { color-scheme: light dark; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 1.5rem auto; max-width: 52rem; padding: 0 1rem; line-height: 1.6; }
+    h1 { font-size: 1.4rem; margin: 0 0 .35rem; }
+    .meta { opacity: .75; font-size: .9rem; margin: 0 0 1.5rem; }
+    .day { border: 1px solid color-mix(in srgb, CanvasText 18%, transparent); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+    .day h2 { margin: 0 0 .85rem; font-size: 1.1rem; border-bottom: 1px solid color-mix(in srgb, CanvasText 12%, transparent); padding-bottom: .4rem; }
+    article { margin: 0 0 1rem; padding-bottom: 1rem; border-bottom: 1px dashed color-mix(in srgb, CanvasText 20%, transparent); }
     article:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
-    .file { font-family: ui-monospace, monospace; font-size: .85rem; opacity: .8; }
-    pre { white-space: pre-wrap; word-break: break-word; margin: .4rem 0 0; }
-    details { margin-top: .5rem; }
-    details > summary { cursor: pointer; opacity: .85; }
+    .entry-name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; opacity: .78; margin-bottom: .35rem; }
+    .entry-text { white-space: pre-wrap; word-break: break-word; margin: 0; font-family: inherit; }
     .empty { opacity: .7; }
     .err { color: #c62828; }
   </style>
 </head>
 <body>
-  <div class="banner">公開日記 — 日記ファイルの読み取り表示</div>
-  <h1>voice diary — 届いた日記</h1>
-  <p class="meta">日記完成時に更新。最終取得: <span id="fetched">—</span></p>
-  <div id="root" class="empty">読み込み中…</div>
+  <h1>Voice Diary</h1>
+  <p class="meta">Updated: <span id="updated">—</span></p>
+  <main id="root" class="empty">Loading...</main>
   <script>
-    function esc(s) {
-      return (s || '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-    }
-    async function load() {
-      const root = document.getElementById('root');
-      try {
-        const res = await fetch('./data.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const data = await res.json();
-        document.getElementById('fetched').textContent = new Date().toLocaleString();
-        if (!data.days || !data.days.length) {
-          root.className = 'empty';
-          root.textContent = 'まだ日記がありません（*.diary.md が state 配下に無い）。';
-          return;
-        }
-        root.className = '';
-        const days = [...(data.days || [])].sort((a, b) => String((b.entries || [])[0]?.name || b.date || '').localeCompare(String((a.entries || [])[0]?.name || a.date || '')));
-        root.innerHTML = days.map(day => {
-          const arts = [...(day.entries || [])].sort((a, b) => String(b.name || '').localeCompare(String(a.name || ''))).map(e => {
-            const diary = esc((e.text || '(空)').replace(/^\s*(?:#+\s*)?\d{4}年\d{1,2}月\d{1,2}日[^\n]*\r?\n\s*/, ''));
-            let extra = '';
-            if (e.transcript) {
-              extra = `<details><summary>文字起こし（${esc(e.transcriptName || 'transcript')}）</summary><pre>${esc(e.transcript)}</pre></details>`;
-            }
-            return `<article><div class="file">${esc(e.name)}</div><pre>${diary}</pre>${extra}</article>`;
-          }).join('');
-          return `<section class="day"><h2>${esc(day.date)}</h2>${arts || '<p class="empty">（この日の日記なし）</p>'}</section>`;
-        }).join('');
-      } catch (err) {
-        root.className = 'err';
-        root.textContent = '取得失敗: ' + err.message;
+    (function () {
+      function createTextElement(tag, className, text) {
+        var el = document.createElement(tag);
+        if (className) el.className = className;
+        el.textContent = text;
+        return el;
       }
-    }
-    load();
+
+      async function load() {
+        var root = document.getElementById('root');
+        var updatedEl = document.getElementById('updated');
+        try {
+          var res = await fetch('./data.json', { cache: 'no-store' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          var data = await res.json();
+          updatedEl.textContent = data && data.generatedAt
+            ? String(data.generatedAt)
+            : new Date().toLocaleString();
+
+          root.textContent = '';
+          var days = Array.isArray(data && data.days) ? data.days : [];
+          if (!days.length) {
+            root.className = 'empty';
+            root.textContent = 'No diary entries available.';
+            return;
+          }
+
+          root.className = '';
+          for (var i = 0; i < days.length; i++) {
+            var day = days[i] || {};
+            var section = document.createElement('section');
+            section.className = 'day';
+            section.appendChild(createTextElement('h2', '', String(day.date || '')));
+
+            var entries = Array.isArray(day.entries) ? day.entries : [];
+            if (!entries.length) {
+              section.appendChild(createTextElement('p', 'empty', 'No entries for this day.'));
+            } else {
+              for (var j = 0; j < entries.length; j++) {
+                var entry = entries[j] || {};
+                var article = document.createElement('article');
+                article.appendChild(createTextElement('div', 'entry-name', String(entry.name || '')));
+                article.appendChild(createTextElement('pre', 'entry-text', String(entry.text || '')));
+                section.appendChild(article);
+              }
+            }
+            root.appendChild(section);
+          }
+        } catch (err) {
+          root.className = 'err';
+          root.textContent = 'Failed to load diary: ' + (err && err.message ? err.message : String(err));
+        }
+      }
+
+      load();
+    })();
   </script>
 </body>
 </html>
